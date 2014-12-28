@@ -1,13 +1,16 @@
 # Zendesk Ticket Prioritizer
 
-Marks tickets that you have publicly answered today.
+A Chrome extension that lists a view's tickets in prioritized order.
 
-Also sorts Zendesk tickets in the following order:
+**Key features:**
 
-1. Starred/unstarred
-2. Answered/unanswered
-3. Priority
-4. Time since last public response
+* Indicates which tickets have received a public response today
+* Manual starring of tickets warranting high attention
+* Multi-attribute sorting of Zendesk tickets in the following order:
+  1. Starred/unstarred
+  2. Answered/unanswered
+  3. Priority
+  4. Time since last public response
 
 # Install
 
