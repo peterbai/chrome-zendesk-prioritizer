@@ -1,0 +1,76 @@
+body.dark {
+    color: #F0F1F1;
+    background: #4A4D4E;
+}
+h1 {
+    font-weight: 600;
+}
+h2 {
+    font-weight: 300;
+    margin: 10px 0 25px;
+    font-size: 20px;
+    position: relative;
+    display: inline-block;
+    padding-right: 10px;
+}
+#content {
+    width: 300px;
+    box-sizing: border-box;
+    padding: 20px;
+    margin: auto;
+}
+.option-line {
+    margin: 10px 0;
+    height: 30px;
+    line-height: 30px;
+    position: relative;
+}
+#input-domain, #input-viewid, #input-userid {
+    float: right;
+    width: 180px;
+}
+.input-error {
+    border: 1px solid #ec514e;
+}
+#button-detectuserid {
+    position: absolute;
+    width: 52px;
+    top: 3px;
+    right: 2px;
+}
+#button-viewselect {
+    position: absolute;
+    width: 52px;
+    top: 3px;
+    right: 2px;
+}
+#button-login {
+    position: absolute;
+    width: 181px;
+    top: 3px;
+    left: 79px;
+}
+/*dropdown menu customization*/
+
+.dropdown.dropdown-tip:after {
+    border-bottom: 6px solid black;
+}
+.dropdown .dropdown-menu, .dropdown .dropdown-panel {
+    min-width: 100px;
+    background: black;
+    font-size: 14px;
+}
+.dropdown .dropdown-menu li {
+    display: block;
+    border-radius: 3px;
+    color: #F0F1F1;
+    text-decoration: none;
+    line-height: 18px;
+    padding: 3px 15px;
+    margin: 2px;
+    white-space: nowrap;
+}
+.dropdown .dropdown-menu li:hover {
+    background-color: #565a5b;
+    cursor: pointer;
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Zendesk Prioritizer Settings</title>
+    <link rel="stylesheet" type="text/css" href="../css/topcoat-desktop-dark.css">
+    <link rel="stylesheet" type="text/css" href="../css/jquery.dropdown.css">
+    <script src="../js/jquery-1.11.1.min.js"></script>
+    <script src="../js/jquery.dropdown.js"></script>
+    <script src="../js/options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/options.css">
+</head>
+
+<body class="dark">
+
+    <div id="content">
+
+        <h1>Settings</h1>
+
+        <div class="option-line">
+            Domain
+            <input type="text" class="topcoat-text-input--large" id="input-domain" value="" placeholder="Enter a domain">
+        </div>
+        <div class="option-line">
+            User ID
+            <input type="text" class="topcoat-text-input--large" id="input-userid" value="" placeholder="">
+            <button class="topcoat-button" id="button-detectuserid">Detect</button>
+        </div>
+        <div class="option-line">
+            View ID
+            <input type="text" class="topcoat-text-input--large" id="input-viewid" value="" placeholder="">
+            <button class="topcoat-button dropdown-disabled" id="button-viewselect" data-dropdown="#dropdown-1">Select</button>
+        </div>
+        <div class="option-line">
+            <button class="topcoat-button--large" id="button-login">Log In</button>
+        </div>
+
+    </div>
+
+    <div id="dropdown-1" class="dropdown dropdown-tip">
+        <ul class="dropdown-menu">
+            <!-- <li data-viewid="12345">Todo</li> -->
+        </ul>
+    </div>
+
+</body>
+
+
+</html>
