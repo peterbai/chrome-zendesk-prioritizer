@@ -1,7 +1,7 @@
 {
     "name": "Zendesk Prioritizer",
     "description": "Provides more advanced sorting of Zendesk tickets",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "background": {
         "scripts": ["js/jquery-1.11.1.js", "js/background.js"]
     },

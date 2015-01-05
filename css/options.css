@@ -1,3 +1,6 @@
+body {
+    -webkit-font-smoothing: antialiased;
+}
 body.dark {
     color: #F0F1F1;
     background: #4A4D4E;
@@ -5,19 +8,35 @@ body.dark {
 h1 {
     font-weight: 600;
 }
-h2 {
-    font-weight: 300;
-    margin: 10px 0 25px;
+#content {
+    width: 300px;
+    padding: 20px;
+    margin: auto;
+    box-sizing: border-box;
+}
+#content header {
+    margin-top: 20px;
+    position: relative;
+}
+#content header h2 {
+    font-weight: 400;
+    margin: 10px 0 10px;
     font-size: 20px;
     position: relative;
     display: inline-block;
     padding-right: 10px;
+    /* prevent :before border from intersecting text*/
+    
+    background: #4A4D4E;
 }
-#content {
-    width: 300px;
-    box-sizing: border-box;
-    padding: 20px;
-    margin: auto;
+#content header:before {
+    content: '';
+    width: 100%;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 23px;
+    border-bottom: 1px solid #58595A;
 }
 .option-line {
     margin: 10px 0;
@@ -28,6 +47,10 @@ h2 {
 #input-domain, #input-viewid, #input-userid {
     float: right;
     width: 180px;
+}
+#input-domain::-webkit-input-placeholder {
+    text-align: right;
+    color: #7c7d7d;
 }
 .input-error {
     border: 1px solid #ec514e;
@@ -47,7 +70,7 @@ h2 {
 #button-login {
     position: absolute;
     width: 181px;
-    top: 3px;
+    top: 0px;
     left: 79px;
 }
 /*dropdown menu customization*/

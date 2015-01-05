@@ -124,7 +124,7 @@
 
         function show_tickets() {
 
-            // don't try to populate tickets unless bg is ready
+            // don't try to populate tickets unless bg has valid data
             if (bg.model.currentlyMakingRequest || bg.model.errorState) {
                 return;
             }
@@ -136,7 +136,7 @@
             var ticketsArray = object_to_array(bg.model.tickets);
 
             if (ticketsArray.length === 0) {
-                $('ul').append('<div class="tickets-li">No tickets in view</div>');
+                $('ul').append('<div class="notification-li">No tickets in view</div>');
                 return;
             }
 
@@ -171,7 +171,7 @@
                 } else {
                     answeredToday = false;
                 }
-                
+
                 var isStarred = (starred.indexOf(thisTicket.id) > -1) ? true : false;
                 var requesterName = bg.model.users[thisTicket.requester_id].name;
 
@@ -187,13 +187,21 @@
             }
 
             $('ul').append(tickets); // appending everything at once fixes the unwanted "grow" effect of appending one at a time
+            add_ellipses();
         }
 
-        function add_click_handlers() {
+        function add_ticket_click_handlers() {
 
-            console.log('Adding click handlers');
+            // console.log('Adding click handlers');
             $('.tickets-li').click(handler_launch_ticket);
             $('.starred').click(handler_toggle_favorite);
+        }
+
+        function add_ellipses() {
+            $('.requester').dotdotdot();
+            // $('.description').dotdotdot({
+            //     height:20
+            // });
         }
 
         function handler_launch_ticket() {
@@ -203,23 +211,48 @@
             bg.launch_zd_link(ID);
         }
 
+        function handler_launch_view() {
+
+            var viewId = bg.settings.viewID;
+            if (viewId) {
+                bg.launch_zd_link(viewId, true);
+            } else {
+                self.failed('No view ID specified');
+            }
+        }
+
         function handler_toggle_favorite(e) {
 
-            e.stopPropagation();  // stop click event on div underneath from firing
+            e.stopPropagation(); // stop click event on div underneath from firing
             var ID = $(this).parent().attr('data-ticketId');
             console.log('toggling starred for ' + ID);
             bg.model.toggle_star(ID);
         }
 
         window.loading = function() {
+
             $('#loading').html('Loading...');
+        };
+
+        window.setProgress = function(progress_value) {
+
+            var progressbarElement = $("#progressbar");
+
+            progressbarElement.css('opacity', '1');
+            progressbarElement.progressbar({
+                value: progress_value
+            });
+
+            if (progress_value >= 100) {
+                progressbarElement.css('opacity', '0');
+            }
         };
 
         window.refreshTickets = function() {
 
             console.log('Background told me to refresh');
             show_tickets();
-            add_click_handlers();
+            add_ticket_click_handlers();
             $('#loading').html('');
         };
 
@@ -229,11 +262,13 @@
             $('#error').html('Error - ' + error);
             $('#error').css('display', 'block');
             $('#loading').html('');
+            $('ul').empty();
         };
 
         update_start_and_end_time();
         show_tickets();
-        add_click_handlers();
+        add_ticket_click_handlers();
+        $('#view-icon').click(handler_launch_view); // only needs to attach once
         bg.get_tickets_and_details();
     });
 

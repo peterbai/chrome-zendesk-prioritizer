@@ -30,6 +30,8 @@ var model = {
     users: {},
     starred: [],
     currentlyMakingRequest: false,
+    numRequestsTotal: 0,
+    numRequestsDone: 0,
     errorState: false,
     lastUpdated: null,
 
@@ -65,12 +67,14 @@ var model = {
 function get_current_user() {
     var url = 'https://' + settings.zendeskDomain +
         '.zendesk.com/api/v2/users/me.json';
+
     return $.getJSON(url);
 }
 
 function get_current_user_views() {
     var url = 'https://' + settings.zendeskDomain +
         '.zendesk.com/api/v2/views.json';
+
     return $.getJSON(url);
 }
 
@@ -78,24 +82,32 @@ function get_tickets() {
     // max 100 tickets, does not traverse multiple API pages
 
     model.currentlyMakingRequest = true;
+    model.numRequestsTotal += 1;
+
     var url = 'https://' + settings.zendeskDomain +
         '.zendesk.com/api/v2/views/' + settings.viewID + '/tickets.json';
-    return $.getJSON(url);
+
+    return $.getJSON(url).done(progress_increment);
 }
 
 function get_ticket_audits(ticketId) {
     model.currentlyMakingRequest = true;
+    model.numRequestsTotal += 1;
+
     var url = 'https://' + settings.zendeskDomain +
         '.zendesk.com/api/v2/tickets/' + ticketId + '/audits.json';
-    return $.getJSON(url);
+
+    return $.getJSON(url).done(progress_increment);
 }
 
 function get_ticket_audits_page(ticketId, page) {
     model.currentlyMakingRequest = true;
+    model.numRequestsTotal += 1;
+
     var url = 'https://' + settings.zendeskDomain +
         '.zendesk.com/api/v2/tickets/' + ticketId + '/audits.json?page=' + page;
 
-    return $.getJSON(url);
+    return $.getJSON(url).done(progress_increment);
 }
 
 function process_audit_pages_from_response(auditResponsesArray) {
@@ -156,6 +168,7 @@ function get_user_details(userId) {
     model.currentlyMakingRequest = true;
     var url = 'https://' + settings.zendeskDomain +
         '.zendesk.com/api/v2/users/' + userId + '.json';
+
     return $.getJSON(url);
 }
 
@@ -235,11 +248,8 @@ function get_tickets_and_details() {
     // get latest comment event in audit history and latest public comment by me
     // write data to model.tickets
 
-    tell_popup_loading();
 
-    if (!settings.zendeskDomain) {
-        send_popup_failure('No domain or view specified');
-        model.errorState = true;
+    if (!preflight_check()) {
         return;
     }
 
@@ -297,15 +307,23 @@ function get_tickets_and_details() {
         });
 }
 
-function update_tickets_with_details() {
-    model.currentlyMakingRequest = false;
-    model.errorState = false;
-    update_time();
-    refresh_popup();
-}
-
-function update_time() {
-    model.lastUpdated = new Date();
+function preflight_check() {
+    if (!settings.zendeskDomain) {
+        send_popup_failure('No domain specified');
+        model.errorState = true;
+        return false;
+    } else if (!settings.userID) {
+        send_popup_failure('No user ID specified');
+        model.errorState = true;
+        return false;
+    } else if (!settings.viewID) {
+        send_popup_failure('No view ID specified');
+        model.errorState = true;
+        return false;
+    } else if (model.currentlyMakingRequest) {
+        return false;
+    }
+    return true;
 }
 
 function error_message(status) {
@@ -331,6 +349,64 @@ function error_message(status) {
     return errorMsg.toString();
 }
 
+function update_tickets_with_details() {
+    model.currentlyMakingRequest = false;
+    model.errorState = false;
+    update_time();
+    refresh_popup();
+    progress_all_done();
+}
+
+function update_time() {
+    model.lastUpdated = new Date();
+}
+
+function progress_increment() {
+    model.numRequestsDone += 1;
+
+    // Don't send 100%; let progress_all_done() handle that
+    if (model.numRequestsTotal > 0 &&
+        model.numRequestsDone / model.numRequestsTotal * 100 < 100) {
+        send_progress_to_popup();
+    }
+}
+
+function progress_all_done() {
+    send_progress_to_popup(100);
+    model.numRequestsTotal = 0;
+    model.numRequestsDone = 0;
+}
+
+function send_progress_to_popup(progress_value) {
+    var minProgressValue = 5;
+
+    if (!progress_value) {
+        if (model.numRequestsTotal > 1) {
+            var calculation =
+                model.numRequestsDone / model.numRequestsTotal * 100;
+            progress_value = (calculation > minProgressValue ?
+                calculation :
+                minProgressValue);
+
+        } else if (model.numRequestsTotal === 1) {
+            progress_value = minProgressValue;
+
+        } else {
+            progress_value = 0;
+        }
+    }
+    // console.log("Total: " + model.numRequestsTotal + ", Done: " +
+    //     model.numRequestsDone + ", Progress value: " + progress_value);
+
+    try {
+        var popupView = chrome.extension.getViews({
+            type: 'popup'
+        })[0].setProgress(progress_value);
+    } catch (e) {
+        // console.log('Could not contact popup window');
+    }
+}
+
 function tell_popup_loading() {
     try {
         chrome.extension.getViews({
@@ -353,6 +429,7 @@ function refresh_popup() {
 }
 
 function send_popup_failure(error) {
+    model.currentlyMakingRequest = false;
     console.log('Sending error to popup: ' + error);
     try {
         chrome.extension.getViews({
@@ -392,8 +469,10 @@ function launch_zd_link(objectID, isView) {
 
             var js = ['var script = document.createElement("script");',
                 'script.textContent = ' + actualCode + ';',
+                'script.id = "chrome-zd-navigate"',
                 'console.log(script);',
-                'document.head.appendChild(script);'
+                'document.head.appendChild(script);',
+                'document.head.removeChild(script);'
             ].join('\n');
 
             chrome.tabs.executeScript(ZDtab.id, {

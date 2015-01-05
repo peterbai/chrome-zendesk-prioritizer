@@ -1,15 +1,15 @@
 @font-face {
     font-family: "Source Sans";
-    src: url("/font/SourceSansPro-Regular.otf");
+    src: url("/fonts/SourceSansPro-Regular.otf");
 }
 @font-face {
     font-family: "Source Sans";
-    src: url("/font/SourceSansPro-Light.otf");
+    src: url("/fonts/SourceSansPro-Light.otf");
     font-weight: 200;
 }
 @font-face {
     font-family: "Source Sans";
-    src: url("/font/SourceSansPro-Semibold.otf");
+    src: url("/fonts/SourceSansPro-Semibold.otf");
     font-weight: 600;
 }
 body {
@@ -19,6 +19,7 @@ body {
     margin: 0px;
     width: 500px;
     font-weight: 400;
+    overflow: auto;
 }
 * {
     list-style: none;
@@ -29,10 +30,10 @@ li {
     position: relative;
 }
 #content {
-    padding-top: 6px;
+    padding-top: 0px;
     padding-bottom: 30px;
-    padding-left: 6px;
-    padding-right: 6px;
+    /*padding-left: 6px;*/
+    /*padding-right: 6px;*/
 }
 #error {
     width: 100%;
@@ -63,20 +64,14 @@ li {
     top: 0px;
     z-index: 2;
 }
-.footer {
-    background-color: white;
-    border-top: 1px solid #e1e1e1;
-    box-sizing: border-box;
-    position: fixed;
-    width: 100%;
-    height: 30px;
-    bottom: 0px;
-    z-index: 2;
-}
+/* Tickets */
+
 .tickets-li {
+    color: #3F3F3F;
     padding: 10px;
-    padding-left: 73px;
+    padding-left: 64px;
     padding-right: 108px;
+    border-bottom: 1px solid #eee;
     -webkit-transition: background-color .1s ease-out;
     -moz-transition: background-color .1s ease-out;
     -o-transition: background-color .1s ease-out;
@@ -89,66 +84,105 @@ li {
     background-color: #c5e4ff;
     cursor: pointer;
 }
+.notification-li {
+    padding: 10px;
+    padding-left: 73px;
+    padding-right: 108px;
+}
 .responded {
     position: absolute;
-    top: 15px;
-    left: 30px;
-    background-image: url('/icon/circle-32-blue.png');
-    background-size: 10px 10px;
-    width: 10px;
-    height: 10px;
+    top: 11px;
+    left: 40px;
 }
-.responded.true {
-    background-image: url('/icon/circle-32-gray.png');
+.responded:before {
+    color: #01bfff;
+    content: "\f111";
+    font-family: FontAwesome;
+    font-size: 14px;
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    -webkit-text-stroke: 1px #0085b2
+}
+.responded.true:before {
+    color: white;
+    -webkit-text-stroke: 1px #ccc
 }
 .priority {
     position: absolute;
-    top: 11px;
-    left: 48px;
-    background-size: 16px 16px;
-    width: 16px;
-    height: 16px;
+    background: none;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
 }
 .priority.urgent {
-    background-image: url('/icon/chevron-urgent-32.png');
+    background: #FF5A5A;
 }
 .priority.high {
-    background-image: url('/icon/chevron-high-32.png');
+    background: #FFE873;
 }
 .priority.low {
-    background-image: url('/icon/chevron-low-32.png');
+    background: #BAE7B7;
 }
 .starred {
     background-size: 16px 16px;
     position: absolute;
     top: 11px;
-    left: 6px;
-    width: 16px;
-    height: 16px;
+    left: 16px;
     cursor: pointer;
 }
-.starred:hover {
-    background-image: url('/icon/star-32-gray.png');
+.starred:before {
+    color: white;
+    content: "\f005";
+    font-family: FontAwesome;
+    font-size: 18px;
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    -webkit-text-stroke: 1px #ccc
 }
-.starred.true {
-    background-image: url('/icon/star-32-yellow.png');
+.starred:hover:before {
+    color: #FEE980;
+}
+.starred.true:before {
+    color: #FEE980;
+    -webkit-text-stroke: 1px #BB8947
 }
 .description {
     margin-top: 4px;
-    font-size: 12px;
-    /*width: 264px;*/
-    
+    font-size: 13px;
+    font-weight: 200;
     color: #737872;
 }
 .requester {
+    font-size: 12px;
+    height: 34px;
+    width: 86px;
     position: absolute;
     left: 405px;
     top: 11px;
-    font-size: 12px;
+}
+/* Footer */
+
+.footer {
+    background-color: #F5F5F5;
+    border-top: 1px solid #e1e1e1;
+    box-sizing: border-box;
+    position: fixed;
+    width: 100%;
+    height: 30px;
+    bottom: 0px;
+    z-index: 2;
 }
 #settings-icon {
-    background: url('/icon/cog-32.png') center no-repeat;
-    background-size: 18px 18px;
+    /*background: url('/icon/cog-32.png') center no-repeat;*/
+    /*background-size: 18px 18px;*/
+    
     width: 24px;
     height: 24px;
     border-radius: 3px;
@@ -157,12 +191,60 @@ li {
     top: 4px;
     outline: none;
 }
-#settings-icon:hover {
-    background-color: rgba(154, 149, 140, 0.15);
+#settings-icon i {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 20px;
+    text-align: center;
+    color: gray;
+    -webkit-transition: all 0.2s ease;
+    transition: all 0.2s ease;
 }
-#updated-time {
-    font-size: 10px;
-    color: #737872;
-    text-align: right;
-    cursor: pointer;
+#settings-icon:hover, #view-icon:hover {
+    background-color: rgba(0, 0, 0, 0.10);
+}
+#settings-icon:hover i {
+    -webkit-transform: rotate(90deg);
+}
+#view-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    position: absolute;
+    left: 12px;
+    top: 4px;
+    outline: none;
+}
+#view-icon i {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 16px;
+    text-align: center;
+    color: gray;
+}
+/* customize progress bar */
+
+#progressbar {
+    width: 200px;
+    height: 8px;
+    position: absolute;
+    top: 9px;
+    left: 150px;
+    -webkit-transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease;
+}
+.ui-progressbar .ui-progressbar-value {
+    margin: 0;
+}
+.ui-widget-content {
+    background: none;
+}
+.ui-widget-header {
+    border: none;
+    background: #ccc;
+}
+.ui-corner-all, .ui-corner-bottom, .ui-corner-right, .ui-corner-br, .ui-corner-left, .ui-corner-bl, .ui-corner-top, .ui-corner-tr, .ui-corner-tl {
+    border-radius: 3px;
 }
