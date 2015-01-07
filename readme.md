@@ -18,7 +18,8 @@ A Chrome extension that lists a view's tickets in prioritized order.
 
 # Install
 
-Navigate to `chrome://extensions`, enable developer mode, and load this project as an unpacked extension.
+* **Method 1**: Install from the Chrome Web Store: https://chrome.google.com/webstore/detail/zendesk-prioritizer/doplkcmbmmndfieconhlhpffkihmjaic
+* **Method 2**: Download this project as a zip and extract. Then, navigate to `chrome://extensions`, enable developer mode, and load the extracted folder as an unpacked extension.
 
 # Release Notes
 
