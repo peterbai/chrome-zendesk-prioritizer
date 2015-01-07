@@ -106,7 +106,7 @@
             return starredB - starredA;
         }
 
-        // learning from https://github.com/Teun/thenBy.js
+        // sourced from https://github.com/Teun/thenBy.js
         var firstBy = (function() { // this function takes no arguments and returns another function
             function extend(func) {
                 func.thenBy = tb;
@@ -204,14 +204,14 @@
             // });
         }
 
-        function handler_launch_ticket() {
+        function handler_launch_ticket(e) {
 
             var ID = $(this).attr('data-ticketId');
             console.log('Opening ticket ' + ID);
             bg.launch_zd_link(ID);
         }
 
-        function handler_launch_view() {
+        function handler_launch_view(e) {
 
             var viewId = bg.settings.viewID;
             if (viewId) {
@@ -271,5 +271,5 @@
         $('#view-icon').click(handler_launch_view); // only needs to attach once
         bg.get_tickets_and_details();
     });
-
+    
 })(jQuery);
