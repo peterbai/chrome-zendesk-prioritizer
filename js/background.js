@@ -1,3 +1,6 @@
+var console = {};
+console.log = function() {};
+
 var settings = {
     zendeskDomain: '',
     viewID: null,
