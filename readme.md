@@ -8,11 +8,12 @@ A Chrome extension that lists a view's tickets in prioritized order.
 
 * Indicates which tickets have received a public response today
 * Easily star high-touch tickets 
-* Multi-attribute sorting of Zendesk tickets in the following order:
+* Customizable multi-attribute sorting of Zendesk tickets. Default order:
   1. Starred/unstarred
-  2. Answered/unanswered
-  3. Priority
-  4. Time since last public response
+  2. Auto/user status change
+  3. Answered/unanswered
+  4. Priority
+  5. Time since last public response
 
 # Install
 
