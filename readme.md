@@ -2,6 +2,8 @@
 
 A Chrome extension that lists a view's tickets in prioritized order.
 
+![Popup](/screenshots/0-0-4/popup.png)
+
 **Key features:**
 
 * Indicates which tickets have received a public response today
