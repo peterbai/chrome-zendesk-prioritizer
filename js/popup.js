@@ -14,13 +14,13 @@
 
         function update_start_and_end_time() {
 
-            today.now = new Date();
-
-            var d1 = new Date(),
-                d2 = new Date();
+            var d1 = new Date();
+            var d2 = new Date();
 
             d1.setHours(0, 0, 0, 0);
             d2.setHours(23, 59, 0, 0);
+
+            today.now = new Date();
             today.startTime = d1;
             today.endTime = d2;
         }
@@ -37,37 +37,28 @@
             }
         }
 
-        function object_to_array(object) {
-
-            var array = [];
-            for (var key in object) {
-                array.push(object[key]);
-            }
-            return array;
-        }
-
         function get_property(object, key) {
 
             return key.split('.').reduce(function(obj, param) {
-                return (typeof obj === 'undefined' || obj === null) ? null : obj[param];
+                return ((typeof obj === 'undefined' || obj === null) ? null : obj[param]);
             }, object);
         }
 
         function sort_waitTime(a, b) {
             // sort by descending wait time (longest wait time at top)
 
-            var timeA = new Date(get_property(a, '_lastPublicUpdateByMe.created_at'));
-            var timeB = new Date(get_property(b, '_lastPublicUpdateByMe.created_at'));
+            var timeA = new Date(get_property(a, '_lastPublicCommentByMe.created_at'));
+            var timeB = new Date(get_property(b, '_lastPublicCommentByMe.created_at'));
             return timeA - timeB;
         }
 
         function sort_responded(a, b) {
             // sort by asending order of responded state (unresponded at top)
 
-            var timeA = new Date(get_property(a, '_lastPublicUpdateByMe.created_at'));
-            var timeB = new Date(get_property(b, '_lastPublicUpdateByMe.created_at'));
-            respondedA = (today.startTime < timeA && timeA < today.endTime) ? 1 : 0;
-            respondedB = (today.startTime < timeB && timeB < today.endTime) ? 1 : 0;
+            var timeA = new Date(get_property(a, '_lastPublicCommentByMe.created_at'));
+            var timeB = new Date(get_property(b, '_lastPublicCommentByMe.created_at'));
+            respondedA = (today.startTime < timeA && timeA < today.endTime ? 1 : 0);
+            respondedB = (today.startTime < timeB && timeB < today.endTime ? 1 : 0);
             return respondedA - respondedB;
         }
 
@@ -100,27 +91,79 @@
 
             var starred = bg.model.starred;
 
-            var starredA = (starred.indexOf(a.id) > -1) ? 1 : 0;
-            var starredB = (starred.indexOf(b.id) > -1) ? 1 : 0;
+            var starredA = (starred.indexOf(a.id) > -1 ? 1 : 0);
+            var starredB = (starred.indexOf(b.id) > -1 ? 1 : 0);
 
             return starredB - starredA;
         }
 
-        // sourced from https://github.com/Teun/thenBy.js
-        var firstBy = (function() { // this function takes no arguments and returns another function
-            function extend(func) {
-                func.thenBy = tb;
-                return func; // returns a function that has a `.thenBy` function parameter
-            }
+        function sort_auto_status_change(a, b) {
 
-            function tb(y) {
-                var x = this; // `this` refers to the function that called `.thenBy`
-                return extend(function(a, b) { // returns a function that has another `.thenBy` function parameter
-                    return x(a, b) || y(a, b); // if x(a,b) === 0, return y(a,b) (if this function deems items equal, go to next function)
-                });
-            }
-            return extend; // this is then assigned to `firstBy`
-        })();
+            var autoA = (get_property(a, '_lastEventStatusChange.author_id') === -1 ? 1 : 0);
+            var autoB = (get_property(b, '_lastEventStatusChange.author_id') === -1 ? 1 : 0);
+
+            return autoA - autoB;
+        }
+
+        function create_sort_function_from_settings() {
+
+            var sortOrder = bg.settings.sortOrder;
+            var sortFunctionArray = [];
+
+            // sourced from https://github.com/Teun/thenBy.js
+            // this anonymous function takes no arguments and returns the function `extend`
+            var firstBy = (function() {
+                function extend(func) {
+                    func.thenBy = tb;
+                    return func; // returns a function that has a `.thenBy` function parameter
+                }
+
+                function tb(y) {
+                        // `this` refers to the function that called `.thenBy`
+                        var x = this;
+
+                        // returns a function that has another `.thenBy` function parameter
+                        return extend(function(a, b) {
+
+                            // if x(a,b) === 0, return y(a,b)
+                            // (if this function deems items equal, go to next function)
+                            return x(a, b) || y(a, b);
+                        });
+                    }
+                    // `extend` is assigned to variable `firstBy`
+                return extend;
+            })();
+
+            _.each(sortOrder, function(element) {
+                switch (element) {
+                    case 'starred':
+                        sortFunctionArray.push(sort_starred);
+                        break;
+                    case 'auto':
+                        sortFunctionArray.push(sort_auto_status_change);
+                        break;
+                    case 'responded':
+                        sortFunctionArray.push(sort_responded);
+                        break;
+                    case 'priority':
+                        sortFunctionArray.push(sort_priority);
+                        break;
+                    case 'wait':
+                        sortFunctionArray.push(sort_waitTime);
+                        break;
+                    default:
+                        console.log('Unrecognized sort function string: ' + element);
+                }
+            });
+
+            var sortingFunction = firstBy(_.first(sortFunctionArray));
+
+            _.each(_.rest(sortFunctionArray), function(element) {
+                sortingFunction = sortingFunction.thenBy(element);
+            });
+
+            return sortingFunction;
+        }
 
         function show_tickets() {
 
@@ -133,7 +176,7 @@
             $('#error').css('display', 'none');
             $('ul').empty();
 
-            var ticketsArray = object_to_array(bg.model.tickets);
+            var ticketsArray = _.values(bg.model.tickets);
 
             if (ticketsArray.length === 0) {
                 $('ul').append('<div class="notification-li">No tickets in view</div>');
@@ -141,8 +184,9 @@
             }
 
             // Multi-attribute sorting
-            ticketsArray.sort(firstBy(sort_starred).thenBy(sort_responded).thenBy(sort_priority).thenBy(sort_waitTime));
+            ticketsArray.sort(create_sort_function_from_settings());
 
+            // Generate HTML for ticket items
             var tickets = '';
             var starred = bg.model.starred;
 
@@ -150,44 +194,66 @@
 
                 var thisTicket = ticketsArray[index];
 
-                var latestCommentBody = thisTicket._lastComment.body;
+                var subjectText = thisTicket.subject;
+
+                var descriptionText = thisTicket._lastComment.body;
+
                 var latestCommentDate = new Date(thisTicket._lastComment.created_at);
                 var latestCommentTimeStr = moment(latestCommentDate).fromNow();
-                var description = '';
-                if (latestCommentBody.length > 152) {
-                    description = latestCommentBody.substring(0, 151) + '... [' + latestCommentTimeStr + ']';
-                } else {
-                    description = latestCommentBody + ' [' + latestCommentTimeStr + ']';
-                }
-                var subject = thisTicket.subject;
-                if (subject.length > 100) {
-                    subject = subject.substring(0, 99) + '...';
-                }
+
+                var isStarred = (starred.indexOf(thisTicket.id) > -1 ? true : false);
+
                 var priority = thisTicket.priority || '';
+
                 var answeredToday;
-                if (thisTicket._lastPublicUpdateByMe) {
+                if (thisTicket._lastPublicCommentByMe) {
                     answeredToday = answered_by_me_today(
-                        thisTicket._lastPublicUpdateByMe.created_at);
+                        thisTicket._lastPublicCommentByMe.created_at);
                 } else {
                     answeredToday = false;
                 }
 
-                var isStarred = (starred.indexOf(thisTicket.id) > -1) ? true : false;
-                var requesterName = bg.model.users[thisTicket.requester_id].name;
+                var autoStatusChange;
+                if (thisTicket._lastEventStatusChange) {
+                    autoStatusChange = (thisTicket._lastEventStatusChange.author_id === -1 ? 'true' : 'false');
+                } else {
+                    // last event was not a status change
+                    autoStatusChange = 'false';
+                }
 
-                // var requester = bg.model.users[];
+                var currentStatus;
+                if (thisTicket._lastEventStatusChange) {
+                    currentStatus = thisTicket._lastEventStatusChange.value;
+                } else {
+                    currentStatus = 'none';
+                }
 
-                tickets += '<li data-ticketid="' + thisTicket.id + '" class=tickets-li>' + subject +
-                    '<div class="responded ' + answeredToday + '"></div>' +
+                var requesterText = bg.model.users[thisTicket.requester_id].name;
+
+                tickets += '<li data-ticketid="' + thisTicket.id + '" class=tickets-li>' +
+                    '<span class="subject">' + subjectText + '</span>' +
                     '<div class="priority ' + priority + '"></div>' +
                     '<div class="starred ' + isStarred + '"></div>' +
-                    '<div class="description">' + description + '</div>' +
-                    '<div class="requester">' + requesterName + '</div>' +
+                    '<div class="responded ' + answeredToday + '"></div>' +
+                    '<div class="auto ' + autoStatusChange + '"></div>' +
+                    '<div class="status ' + currentStatus + '"></div>' +
+                    '<div class="description">' + descriptionText + '</div>' +
+                    '<div class="requester">' + requesterText + '</div>' +
+                    '<div class="time">' + latestCommentTimeStr + '</div>' +
                     '</li>';
-            }
 
-            $('ul').append(tickets); // appending everything at once fixes the unwanted "grow" effect of appending one at a time
-            add_ellipses();
+                var debugString = sprintf(
+                    "starred: %5s | auto: %5s | responded: %5s | priority: %6s | wait: %20s",
+                    isStarred,
+                    autoStatusChange,
+                    answeredToday,
+                    priority,
+                    get_property(thisTicket, '_lastPublicCommentByMe.created_at')
+                );
+                // console.log(debugString);
+            }
+            // append everything at once to avoid "growing" the content div
+            $('ul').append(tickets);
         }
 
         function add_ticket_click_handlers() {
@@ -195,13 +261,6 @@
             // console.log('Adding click handlers');
             $('.tickets-li').click(handler_launch_ticket);
             $('.starred').click(handler_toggle_favorite);
-        }
-
-        function add_ellipses() {
-            $('.requester').dotdotdot();
-            // $('.description').dotdotdot({
-            //     height:20
-            // });
         }
 
         function handler_launch_ticket(e) {
@@ -270,6 +329,7 @@
         add_ticket_click_handlers();
         $('#view-icon').click(handler_launch_view); // only needs to attach once
         bg.get_tickets_and_details();
+
     });
-    
+
 })(jQuery);

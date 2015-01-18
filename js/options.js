@@ -7,6 +7,7 @@ var bg = chrome.extension.getBackgroundPage();
     $(function() {
 
         var settings = bg.settings;
+        // window.settings = bg.settings;
         settings.load();
         // console.log(settings);
 
@@ -16,6 +17,7 @@ var bg = chrome.extension.getBackgroundPage();
         var buttonDetectUserId = $('#button-detectuserid');
         var buttonListUserViews = $('#button-viewselect');
         var buttonLogIn = $('#button-login');
+        var buttonResetSort = $('#button-sort-reset');
 
         function load() {
             inputDomain.val(settings.zendeskDomain);
@@ -40,7 +42,7 @@ var bg = chrome.extension.getBackgroundPage();
             }
 
             buttonDetectUserId.attr('disabled', true);
-            load();  // load to clear error messages
+            load(); // load to clear error messages
 
             bg.get_current_user()
                 .then(function(response) {
@@ -78,7 +80,7 @@ var bg = chrome.extension.getBackgroundPage();
             }
 
             buttonListUserViews.attr('disabled', true);
-            load();  // load to clear error messages
+            load(); // load to clear error messages
 
             bg.get_current_user_views()
                 .then(function(response) {
@@ -156,14 +158,41 @@ var bg = chrome.extension.getBackgroundPage();
             save();
         }
 
-        load();
+        function handler_reset_sort_order() {
 
+            settings.set_defaults_sort();
+            if (sortable) {
+                sortable.sort(settings.sortOrder);
+            }
+            settings.save();
+        }
+
+        function create_sortable_object() {
+
+            var sortingOrderItems = $('#sort-order-items')[0];
+            var sortable = new Sortable(sortingOrderItems, {
+                onSort: function() {
+                    console.log(this.toArray());
+                    settings.sortOrder = this.toArray();
+                    settings.save();
+                }
+            });
+            sortable.sort(settings.sortOrder);
+            return sortable;
+        }
+
+        load();
+        var sortable = create_sortable_object();
+        
         inputDomain.on('input', save);
         inputUserId.on('input', save);
         inputViewId.on('input', save);
         buttonDetectUserId.click(detect_user_id);
         buttonListUserViews.click(list_user_views);
         buttonLogIn.click(open_login_window);
+        buttonResetSort.click(handler_reset_sort_order);
+        
+
     });
 
 })(jQuery);

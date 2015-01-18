@@ -5,8 +5,10 @@
     <title>Zendesk Prioritizer Settings</title>
     <link rel="stylesheet" type="text/css" href="../css/topcoat-desktop-dark.css">
     <link rel="stylesheet" type="text/css" href="../css/jquery.dropdown.css">
+    <link rel="stylesheet" type="text/css" href="../css/font-awesome.css">
     <script src="../js/jquery-1.11.1.min.js"></script>
     <script src="../js/jquery.dropdown.js"></script>
+    <script src="../js/Sortable.js"></script>
     <script src="../js/options.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/options.css">
 </head>
@@ -25,6 +27,7 @@
             <input type="text" class="topcoat-text-input--large" id="input-domain" value="" placeholder=".zendesk.com">
         </div>
         <div class="option-line">
+            <br>
             <button class="topcoat-button--large" id="button-login">Log In</button>
         </div>
 
@@ -42,6 +45,26 @@
             <button class="topcoat-button dropdown-disabled" id="button-viewselect" data-dropdown="#dropdown-1">Select</button>
         </div>
 
+        <header>
+            <h2>Sorting</h2>
+        </header>
+        <div class="option-line sort">
+            <span>Sort order</span>
+            <div class="topcoat-textarea sort-container">
+                <ul id="sort-order-items">
+                    <li data-id="starred">Starred</li>
+                    <li data-id="auto">Auto status</li>
+                    <li data-id="responded">Responded</li>
+                    <li data-id="priority">Priority</li>
+                    <li data-id="wait">Wait time</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="option-line">
+            <br>
+            <button class="topcoat-button--large" id="button-sort-reset">Reset</button>
+        </div>
 
     </div>
 

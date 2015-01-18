@@ -1,19 +1,34 @@
-var console = {};
-console.log = function() {};
+// var console = {};
+// console.log = function() {};
 
 var settings = {
     zendeskDomain: '',
     viewID: null,
     userID: null,
+    sortOrder: [],
 
+    set_defaults_sort: function() {
+        this.sortOrder =  [
+            'starred', 
+            'auto',
+            'responded',
+            'priority',
+            'wait'
+        ];
+        console.log('Setting default sort order');
+    },
     load: function(callback) {
         var self = this;
         chrome.storage.local.get(null, function(loadedSettings) {
             self.zendeskDomain = loadedSettings.zendeskDomain || '';
             self.viewID = loadedSettings.viewID || null;
             self.userID = loadedSettings.userID || null;
+            self.sortOrder = loadedSettings.sortOrder || null;
             if (callback) {
                 callback();
+            }
+            if (!self.sortOrder) {
+                self.set_defaults_sort();
             }
             console.log("Settings loaded");
         });
@@ -22,7 +37,8 @@ var settings = {
         chrome.storage.local.set({
             'zendeskDomain': this.zendeskDomain,
             'viewID': this.viewID,
-            'userID': this.userID
+            'userID': this.userID,
+            'sortOrder': this.sortOrder
         });
         console.log("Settings saved");
     }
@@ -184,55 +200,78 @@ function load_tickets_into_model(ticketsData) {
     }
 }
 
-function filter_events_for_comment(event) {
-    return event.type === 'Comment';
-}
+function get_last_event_from_audits_that_satisfies_parameters(audits, parameters) {
 
-function filter_events_for_public_comment_by_me(event) {
-    return event.type === 'Comment' &&
-        event.public === true &&
-        event.author_id === settings.userID;
-}
+    var lastEvent;
 
-function generic_search_in_audits_with_filter(audits, filter) {
-    var lastComment = null;
+    // Do reverse find on a copy of audits array to preserve original
+    var lastAudit = _.find(audits.slice(0).reverse(),
+        function(audit) {
+            lastEvent = _.findWhere(audit.events, parameters);
+            return lastEvent;
+        });
 
-    for (var j = audits.length - 1; j >= 0 && lastComment === null; j--) {
-        var createdDateTime = audits[j].created_at;
-        var events = audits[j].events;
-
-        // filter this audit's events for all comments
-        var eventsFilteredAll = events.filter(filter);
-        lastComment = eventsFilteredAll[0] || null;
-
-        if (lastComment) {
-            lastComment.created_at = createdDateTime;
-        }
+    if (lastEvent) {
+        lastEvent.created_at = lastAudit.created_at;
     }
-    return lastComment;
+
+    return lastEvent;
+}
+
+function get_last_event_from_audits_if_satisfies_parameters(audits, parameters) {
+
+    var lastAudit = _.last(audits);
+    var lastEvent = _.findWhere(lastAudit.events, parameters);
+
+    if (lastEvent) {
+        lastEvent.created_at = lastAudit.created_at;
+        lastEvent.author_id = lastAudit.author_id;
+    }
+
+    return lastEvent;
 }
 
 function get_last_comment_from_audits(audits) {
-    return generic_search_in_audits_with_filter(
-        audits, filter_events_for_comment);
+
+    return get_last_event_from_audits_that_satisfies_parameters(audits, {
+        type: 'Comment'
+    });
 }
 
 function get_last_comment_by_me_from_audits(audits) {
-    return generic_search_in_audits_with_filter(
-        audits, filter_events_for_public_comment_by_me);
+
+    return get_last_event_from_audits_that_satisfies_parameters(audits, {
+        type: 'Comment',
+        public: true,
+        author_id: settings.userID
+    });
 }
 
-function set_ticket_last_comments_from_audits(auditResponsesArray) {
+function get_last_event_if_status_change_from_audits(audits) {
+
+    return get_last_event_from_audits_if_satisfies_parameters(audits, {
+        type: 'Change',
+        field_name: 'status',
+    });
+}
+
+function set_ticket_custom_properties_from_audits(auditResponsesArray) {
+
     for (var i = 0; i < auditResponsesArray.length; i++) {
         var audits = auditResponsesArray[i];
         var ticketId = audits[0].ticket_id;
 
         console.log('Analyzing audits for ticket ID ' + ticketId +
             ', with a total of ' + audits.length + ' audits');
+
         model.tickets[ticketId]._lastComment =
             get_last_comment_from_audits(audits);
-        model.tickets[ticketId]._lastPublicUpdateByMe =
+
+        model.tickets[ticketId]._lastPublicCommentByMe =
             get_last_comment_by_me_from_audits(audits);
+
+        model.tickets[ticketId]._lastEventStatusChange =
+            get_last_event_if_status_change_from_audits(audits);
     }
 }
 
@@ -299,7 +338,8 @@ function get_tickets_and_details() {
                     requesterArguments = arguments[0];
                 }
 
-                set_ticket_last_comments_from_audits(auditResponsesArray);
+                console.log(auditResponsesArray);
+                set_ticket_custom_properties_from_audits(auditResponsesArray);
                 process_user_details(requesterArguments);
                 update_tickets_with_details();
             });
