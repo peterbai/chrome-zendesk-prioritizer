@@ -24,6 +24,10 @@ A Chrome extension that lists a view's tickets in prioritized order.
 # Release Notes
 
 ##v0.0.4.2
+* Better description string parsing
+* Small fix for Options page buttons
+
+##v0.0.4.2
 * Customizable sort options
 * New sorting parameter: auto status change
 * Popup UI stays at consistent height

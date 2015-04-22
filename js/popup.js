@@ -196,7 +196,8 @@
 
                 var subjectText = thisTicket.subject;
 
-                var descriptionText = thisTicket._lastComment.body;
+                var descriptionRawText = thisTicket._lastComment.body;
+                var descriptionText = $("div.placeholderClass").text(descriptionRawText).html();
 
                 var latestCommentDate = new Date(thisTicket._lastComment.created_at);
                 var latestCommentTimeStr = moment(latestCommentDate).fromNow();
