@@ -23,7 +23,7 @@ A Chrome extension that lists a view's tickets in prioritized order.
 
 # Release Notes
 
-##v0.0.4.2
+##v0.0.4.3
 * Better description string parsing
 * Small fix for Options page buttons
 
